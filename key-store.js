@@ -1,11 +1,24 @@
 const VALID_KEYS_PATH = __dirname + '/valid-keys.txt';
-const fs = require('fs');
 const shortid = require('shortid');
-// To generate a unique API KEY, use shortid.generate()
-const LINE_ENDING = require('os').EOL;
+const {getKeysFromFile, persistKey} = require("./util");
 
+module.exports = async function (req, res) {
+	const currentKeys = await getKeysFromFile(VALID_KEYS_PATH);
 
-module.exports = function (req, res) {
+	const key = generateKey(currentKeys);
 
+	persistKey(key, VALID_KEYS_PATH);
+
+	return res.status(200).json({apiKey: key});
 };
+
+function generateKey(currentKeys) {
+	const newKey = shortid.generate();
+
+	if (currentKeys.includes(newKey)) {
+		return generateKey(currentKeys);
+	}
+
+	return newKey;
+}
 
